@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 
 #### TO BE MODIFIED AS PER NEEDS ####
 # Run this script from the folder that contains the 'dirs'
-dirs = ['train', 'valid', 'test']  
+dirs = ['train', 'val', 'test']  
 classes = ['smoke']
 img_format = '.jpg'
 #####################################
