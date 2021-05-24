@@ -1,66 +1,115 @@
+"""
+Usage:
+
+(1) From Terminal:
+python visualize_bounding_boxes.py -c <config_file_path>
+OR
+python visualize_bounding_boxes.py --config_path <config_file_path>
+
+(2) Importing:
+from visualize_bounding_boxes import VisualizeVOCAndYOLOLabels
+VisualizeVOCAndYOLOLabels.visualize(<config_file_path>)
+"""
+
 import os
+import glob
 import xml.etree.ElementTree as ET
 import cv2 
+import yaml
+import sys
+import getopt
 
-#### TO BE MODIFIED AS PER NEEDS ####
-# Run this script from the folder that contains the 'dir'
-dir = 'train'
-basenames = ['ck0k9ghqt7a8l0944mcvy0jsx_jpeg.rf.5b55501a403c70b4dba61727046660b5', 
-             'ck0kkgwvk9hhg0701edmbvr7r_jpeg.rf.72b0cbcbdd84a2f967e4d56a8a994552', 
-             'ck0kmi067lmu70848mrnfi0rc_jpeg.rf.a31f55cd786e5155b79470fb2a7faea0', 
-             'ck0lwg0retsfg0848hqi60tlt_jpeg.rf.3025c97e8deb2f2899cbe49461437ae6', 
-             'ck0nd98ujhlfg0a46hhco18rf_jpeg.rf.8e239f5ba8045c6acbf54234796128fd']
-img_format = '.jpg'
-#####################################
+class VisualizeVOCAndYOLOLabels:
+    img_dir_path = None
+    voc_dir_path = None
+    yolo_dir_path = None
+    img_format = None
 
-cwd = os.getcwd()
-xml_dir = os.path.join(cwd, dir)
-txt_dir = os.path.join(cwd, 'yolo', dir)
+    @staticmethod
+    def visualizeBB(basenames):
+        for name in basenames:
+            image = cv2.imread(os.path.join(VisualizeVOCAndYOLOLabels.img_dir_path, name) + VisualizeVOCAndYOLOLabels.img_format)
 
-for name in basenames:
-    image = cv2.imread(os.path.join(xml_dir, name) + img_format)
+            with open(os.path.join(VisualizeVOCAndYOLOLabels.voc_dir_path, name) + '.xml') as xml_file:
+                tree = ET.parse(xml_file)
+                root = tree.getroot()
 
-    with open(os.path.join(xml_dir, name) + '.xml') as xml_file:
-        tree = ET.parse(xml_file)
-        root = tree.getroot()
+                size = root.find('size')
+                img_w = int(size.find('width').text)
+                img_h = int(size.find('height').text)
 
-        size = root.find('size')
-        img_w = int(size.find('width').text)
-        img_h = int(size.find('height').text)
+                for obj in root.iter('object'):
+                    difficult = int(obj.find('difficult').text)
+                    if  difficult == 1: continue
 
-        for obj in root.iter('object'):
-            difficult = int(obj.find('difficult').text)
-            if  difficult == 1: continue
+                    xmlbox = obj.find('bndbox')
+                    xmin = float(xmlbox.find('xmin').text)
+                    xmax = float(xmlbox.find('xmax').text)
+                    ymin = float(xmlbox.find('ymin').text)
+                    ymax = float(xmlbox.find('ymax').text)
 
-            xmlbox = obj.find('bndbox')
-            xmin = float(xmlbox.find('xmin').text)
-            xmax = float(xmlbox.find('xmax').text)
-            ymin = float(xmlbox.find('ymin').text)
-            ymax = float(xmlbox.find('ymax').text)
+                    print('\nCoordinates in VOC format (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
 
-            print('\nCoordinates in VOC format (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
+                    img = cv2.rectangle(image, (int(xmin), int(ymax)), (int(xmax), int(ymin)), (255, 0, 0), 1)
+                    cv2.imshow('Image with Bounding Boxes', img)
+                    cv2.waitKey(0)
 
-            img = cv2.rectangle(image, (int(xmin), int(ymax)), (int(xmax), int(ymin)), (255, 0, 0), 1)
-            cv2.imshow('Image with Bounding Boxes', img)
-            cv2.waitKey(0)
+            
+            with open(os.path.join(VisualizeVOCAndYOLOLabels.yolo_dir_path, name) + '.txt') as txt_file:
+                line = txt_file.readline()
+                while line:
+                    class_id, x, y, w, h = map(float, line.split())
 
-    
-    with open(os.path.join(txt_dir, name) + '.txt') as txt_file:
-        line = txt_file.readline()
-        while line:
-            class_id, x, y, w, h = map(float, line.split())
+                    xc = x * img_w
+                    yc = y * img_h
+                    xmin = float(xc - 0.5 * w * img_w)
+                    xmax = float(xc + 0.5 * w * img_w)
+                    ymin = float(yc - 0.5 * h * img_h)
+                    ymax = float(yc + 0.5 * h * img_h) 
 
-            xc = x * img_w
-            yc = y * img_h
-            xmin = float(xc - 0.5 * w * img_w)
-            xmax = float(xc + 0.5 * w * img_w)
-            ymin = float(yc - 0.5 * h * img_h)
-            ymax = float(yc + 0.5 * h * img_h) 
+                    print('Coordinates in YOLO format converted to VOC format (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
 
-            print('Coordinates in YOLO format converted to VOC format (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
+                    img = cv2.rectangle(image, (int(xmin), int(ymax)), (int(xmax), int(ymin)), (0, 0, 255), 1)
+                    cv2.imshow('Image with Bounding Boxes', img)
+                    cv2.waitKey(0)
 
-            img = cv2.rectangle(image, (int(xmin), int(ymax)), (int(xmax), int(ymin)), (0, 0, 255), 1)
-            cv2.imshow('Image with Bounding Boxes', img)
-            cv2.waitKey(0)
+                    line = txt_file.readline()
 
-            line = txt_file.readline()
+
+    @staticmethod
+    def visualize(config_path):
+        with open(config_path) as f:
+            config = yaml.load(f, Loader=yaml.FullLoader)
+            VisualizeVOCAndYOLOLabels.img_dir_path = config['img_dir_path']
+            VisualizeVOCAndYOLOLabels.voc_dir_path = config['voc_dir_path']
+            VisualizeVOCAndYOLOLabels.yolo_dir_path = config['yolo_dir_path']
+            basenames = config['basenames']
+            VisualizeVOCAndYOLOLabels.img_format = config['img_format']
+
+
+        if not basenames:
+            basename_list = []
+            for filename in glob.glob(os.path.join(VisualizeVOCAndYOLOLabels.img_dir_path, '*') + VisualizeVOCAndYOLOLabels.img_format):
+                basename = os.path.basename(filename)
+                basename_no_ext = os.path.splitext(basename)[0]
+                basename_list.append(basename_no_ext)
+            
+            VisualizeVOCAndYOLOLabels.visualizeBB(basename_list)
+            
+        else:
+            VisualizeVOCAndYOLOLabels.visualizeBB(basenames)
+
+
+# If the script is run from the terminal
+if __name__ == '__main__':
+    try:
+        arguments, values = getopt.getopt(sys.argv[1:], 'c:', ['config_path='])
+
+        for currentArgument, currentValue in arguments:
+            if currentArgument in ("-c", "--config_path"):
+                config_path = currentValue
+
+        VisualizeVOCAndYOLOLabels.visualize(config_path)
+
+    except getopt.GetoptError as err:
+        print(str(err))     
