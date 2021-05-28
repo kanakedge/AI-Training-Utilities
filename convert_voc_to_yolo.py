@@ -110,7 +110,9 @@ class ConvertVOCToYOLO:
 
 
     @staticmethod
-    def split_dataset(path_to_dirs, dirs, train_test_val_ratio, img_format, seed = 0):
+    def split_dataset(path_to_dirs, dirs, train_test_val_ratio, img_format, seed):
+        if seed == None: seed = 0
+        
         # Identifying which folder has images and which has XML files
         if dirs[0].lower().startswith('annot'):
             img_dir = 1

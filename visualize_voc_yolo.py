@@ -2,12 +2,12 @@
 Usage:
 
 (1) From Terminal:
-python visualize_bounding_boxes.py -c <config_file_path>
+python visualize_voc_yolo.py -c <config_file_path>
 OR
-python visualize_bounding_boxes.py --config_path <config_file_path>
+python visualize_voc_yolo.py --config_path <config_file_path>
 
 (2) Importing:
-from visualize_bounding_boxes import VisualizeVOCAndYOLOLabels
+from visualize_voc_yolo import VisualizeVOCAndYOLOLabels
 VisualizeVOCAndYOLOLabels.visualize(<config_file_path>)
 """
 
@@ -48,7 +48,7 @@ class VisualizeVOCAndYOLOLabels:
                     ymin = float(xmlbox.find('ymin').text)
                     ymax = float(xmlbox.find('ymax').text)
 
-                    print('\nCoordinates in VOC format (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
+                    print('\nVOC Coordinates (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
 
                     img = cv2.rectangle(image, (int(xmin), int(ymax)), (int(xmax), int(ymin)), (255, 0, 0), 1)
                     cv2.imshow('Image with Bounding Boxes', img)
@@ -67,7 +67,7 @@ class VisualizeVOCAndYOLOLabels:
                     ymin = float(yc - 0.5 * h * img_h)
                     ymax = float(yc + 0.5 * h * img_h) 
 
-                    print('Coordinates in YOLO format converted to VOC format (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
+                    print('YOLO Coordinates (xmin, xmax, ymin, ymax): ', xmin, xmax, ymin, ymax)
 
                     img = cv2.rectangle(image, (int(xmin), int(ymax)), (int(xmax), int(ymin)), (0, 0, 255), 1)
                     cv2.imshow('Image with Bounding Boxes', img)
