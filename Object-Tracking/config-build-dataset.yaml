@@ -1,0 +1,6 @@
+video_path: C:\Users\Rashi\Downloads\trailer-trimmed.mp4
+
+output_path: D:\EdgeNeural Internship\dumpoutput
+
+# Perform Object Detection every __ frames
+frame_interval: 10

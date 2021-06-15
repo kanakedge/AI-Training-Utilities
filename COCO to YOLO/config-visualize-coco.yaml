@@ -1,0 +1,14 @@
+img_dir_path: D:\EdgeNeural Internship\wildfire\coco\test
+
+coco_dir_path: D:\EdgeNeural Internship\wildfire\coco\test
+
+yolo_dir_path: D:\EdgeNeural Internship\wildfire\coco\yolo\test
+
+basenames: 
+  - ck0kdhymna0b10721v4wntit8_jpeg.rf.a08e34d04fb672ce6cf8e94e810ec81d
+  - ck0l9uumy9b4i0863izsuks74_jpeg.rf.688da3ca009efc20f792d1aa922f3131
+  - ck0nehpd69bax0721onacbe33_jpeg.rf.02ed50fbcb97fee8681eece1df7f397d
+  - ck0rql046icek0a462kapdu97_jpeg.rf.61cb5eb5e971b2d2c3c9767b473834fe
+  - ck0tzjni6sjt50863e6a6a8fl_jpeg.rf.46d343d22cd08c90668cc0d50bc52a2d
+
+img_format: .jpg

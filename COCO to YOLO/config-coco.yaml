@@ -1,0 +1,13 @@
+path_to_dirs: D:\EdgeNeural Internship\wildfire
+
+dirs:
+  - images
+  - annotations
+    # - train
+    # - test
+    # - valid
+
+train_test_val_ratio: [0.8, 0.1, 0.1]
+seed:
+
+img_format: .jpg

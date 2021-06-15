@@ -1,0 +1,12 @@
+img_dir_path: D:\EdgeNeural Internship\data\train
+
+voc_dir_path: D:\EdgeNeural Internship\data\train
+
+yolo_dir_path: D:\EdgeNeural Internship\data\yolo\train
+
+basenames: 
+  - ck0k9ghqt7a8l0944mcvy0jsx_jpeg.rf.5b55501a403c70b4dba61727046660b5
+  - ck0kcurm6j1k50a464wsovbw2_jpeg.rf.489c2d0fab9adffcd45e4e8ca8f26346
+  - ck0kdpfyk4t8v08633b9u5zhe_jpeg.rf.ff2afd2c799d7ce3dbf8e4588e60fda5
+
+img_format: .jpg
