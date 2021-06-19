@@ -102,6 +102,12 @@ def train(hyp, opt, device, tb_writer=None):
     train_path = data_dict['train']
     test_path = data_dict['val']
 
+    # change made 
+    test_set_available = False if data_dict.get('test', 0) == 0 or data_dict['test'] == None else True
+    if test_set_available:
+        test_folder_path = data_dict['test']
+    # change made 
+
     # Freeze
     freeze = []  # parameter names to freeze (full or partial)
     for k, v in model.named_parameters():
@@ -180,6 +186,13 @@ def train(hyp, opt, device, tb_writer=None):
     nl = model.model[-1].nl  # number of detection layers (used for scaling hyp['obj'])
     imgsz, imgsz_test = [check_img_size(x, gs) for x in opt.img_size]  # verify imgsz are gs-multiples
 
+    # change made
+    with open(save_dir / 'hyperparameters.csv','w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['lr0', 'lrf', 'momentum', 'batch_size', 'epochs', 'train_img_size', 'test_img_size', 'amp'])
+        writer.writerow([hyp['lr0'], hyp['lrf'], hyp['momentum'], opt.batch_size, opt.epochs, imgsz, imgsz_test, False]) # imgsz and imgsz_test is updated to be multiple of max stride 32
+    # change made
+
     # DP mode
     if cuda and rank == -1 and torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
@@ -197,6 +210,14 @@ def train(hyp, opt, device, tb_writer=None):
     
     
     train_set_size = len(dataset)  # change made
+    val_set_size = len([name for name in os.listdir(test_path) if os.path.isfile(os.path.join(test_path, name))]) # change made
+    # change made
+    with open(save_dir / 'dataset.csv','w', newline='') as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(['train_set_size', 'val_set_size', 'total_classes'])
+        writer.writerow([train_set_size, val_set_size, nc])
+    # change made
+
 
     mlc = np.concatenate(dataset.labels, 0)[:, 0].max()  # max label class
     nb = len(dataloader)  # number of batches
@@ -209,7 +230,14 @@ def train(hyp, opt, device, tb_writer=None):
                                        world_size=opt.world_size, workers=opt.workers,
                                        pad=0.5, prefix=colorstr('val: '))[0]
 
-        val_set_size = len([name for name in os.listdir(test_path) if os.path.isfile(os.path.join(test_path, name))]) # change made
+        # change made 
+        if test_set_available:
+            testfolderloader = create_dataloader(test_folder_path, imgsz_test, batch_size * 2, gs, single_cls,
+                                        hyp=hyp, cache=opt.cache_images and not opt.notest, rect=True, rank=-1,
+                                        world_size=opt.world_size, workers=opt.workers,
+                                        pad=0.5, prefix=colorstr('test: '))[0]
+        # change made 
+
 
         if not opt.resume:
             labels = np.concatenate(dataset.labels, 0)
@@ -245,8 +273,8 @@ def train(hyp, opt, device, tb_writer=None):
 
 
     # change made 
-    header = ['Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'labels', 'img_size', 'P', 'R', 'mAP@.5', 'mAP@.5:.95', 'val_loss_box', 'val_loss_obj', 'val_loss_cls', 'train_set_size', 'val_set_size', 'batch_size', 'total_classes']
-    with open('metrics.csv', 'w', newline = '') as csv_file:
+    header = ['Epoch', 'gpu_mem', 'train_box_loss', 'train_obj_loss', 'train_cls_loss', 'train_total_loss', 'labels', 'P', 'R', 'mAP@.5', 'mAP@.5:.95', 'val_box_loss', 'val_obj_loss', 'val_cls_loss', 'F1_Score', 'test_set_mAP@.5', 'test_set_mAP@.5:.95']
+    with open(save_dir / 'metrics.csv', 'w', newline = '') as csv_file:
         writer = csv.writer(csv_file)
         writer.writerow(header)
     # change made 
@@ -369,6 +397,7 @@ def train(hyp, opt, device, tb_writer=None):
             ema.update_attr(model, include=['yaml', 'nc', 'hyp', 'gr', 'names', 'stride', 'class_weights'])
             final_epoch = epoch + 1 == epochs
             if not opt.notest or final_epoch:  # Calculate mAP
+                print('\nVal:') # change made
                 wandb_logger.current_epoch = epoch + 1
                 results, maps, _ = test.test(data_dict,
                                              batch_size=batch_size * 2,
@@ -382,15 +411,41 @@ def train(hyp, opt, device, tb_writer=None):
                                              plots=plots and final_epoch,
                                              wandb_logger=wandb_logger,
                                              compute_loss=compute_loss)
+            # change made 
+            print('\nTest:')
+            if test_set_available:
+                results2, maps2, _ = test.test(data_dict,
+                                batch_size=batch_size * 2,
+                                imgsz=imgsz_test,
+                                model=ema.ema,
+                                single_cls=single_cls,
+                                dataloader=testfolderloader,
+                                save_dir=save_dir,
+                                save_json=is_coco and final_epoch,
+                                verbose=nc < 50 and final_epoch,
+                                plots=plots and final_epoch,
+                                wandb_logger=wandb_logger,
+                                compute_loss=compute_loss)
+
+                test_map50 = results2[2]
+                test_map = results2[3]
+
+            else:
+                test_map50 = 0
+                test_map = 0
+
+            # change made 
+
 
             # Write
             with open(results_file, 'a') as f:
                 f.write(s + '%10.4g' * 7 % results + '\n')  # append metrics, val_loss
 
             # change made
-            with open('metrics.csv','a', newline='') as csv_file:
+            with open(save_dir / 'metrics.csv','a', newline='') as csv_file:
                 writer = csv.writer(csv_file)
-                writer.writerow([f'{epoch}/{epochs - 1}', mem] + mloss.tolist() + [targets.shape[0], imgs.shape[-1]] + list(results) + [train_set_size, val_set_size, opt.batch_size, nc])
+                f1_score = (2 * results[0] * results[1])/(results[0] + results[1] + 1e-16)
+                writer.writerow([epoch, mem[:-1]] + mloss.tolist() + [targets.shape[0]] + list(results) + [f1_score, test_map50, test_map])
             # change made
 
             # Log
