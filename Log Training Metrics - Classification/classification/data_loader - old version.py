@@ -40,6 +40,18 @@ class ImageClassificationDataLoader:
 		        test_classes_counts[classes] =counts
 		    print("Test data: \n", test_classes_counts,"\n")
 
+		# # change made
+		# with open('dataset.csv', 'w', newline='') as csv_file:
+		# 	writer = csv.DictWriter(csv_file, fieldnames = [f'train_{cls}' for cls in train_classes_counts] + [f'test_{cls}' for cls in test_classes_counts])
+		# 	writer.writeheader()
+
+		# 	train_data = {f'train_{cls}' : train_classes_counts[cls] for cls in train_classes_counts}
+		# 	test_data = {f'test_{cls}' : test_classes_counts[cls] for cls in test_classes_counts}
+		# 	train_data.update(test_data)
+			
+		# 	writer.writerow(train_data)
+		# # change made
+
 
 		classes = os.listdir(self.TRAIN_DIR)
 		classes = {k:v for k , v in enumerate(sorted(classes))}
