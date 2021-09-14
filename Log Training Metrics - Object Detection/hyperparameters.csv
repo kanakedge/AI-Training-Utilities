@@ -1,0 +1,2 @@
+lr0,lrf,momentum,batch_size,epochs,train_img_size,test_img_size,amp
+0.01,0.2,0.937,4,2,640,640,False
