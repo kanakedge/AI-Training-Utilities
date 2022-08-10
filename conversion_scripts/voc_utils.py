@@ -1,5 +1,3 @@
-from fileinput import filename
-import xml.etree.ElementTree as ET
 import xmltodict
 
 XML_STRUCTURE = {'annotation':{
@@ -28,7 +26,6 @@ XML_STRUCTURE = {'annotation':{
     }
 }}
 
-
 def read_voc_xml(path):
     with open(path) as fd:
         doc = xmltodict.parse(fd.read())
@@ -44,32 +41,19 @@ def read_voc_xml(path):
 
     return parsed_
 
-
-def read_yolo(path):
-    with open(path, "r") as file:
-        data = file.read()
-    data = data.split(" ")
-    
-    return {"label": int(data[0]), "x_center":float(data[1]),
-            "y_center": float(data[2]), "width": float(data[3]), 
-            "height": float(data[4])}
-
-
-demo_xml = {"folder", "filename", "database", "path", "width", "height", "depth", "segmented", "label", "pose", "truncated", "difficult", "occluded", "x_top_left", "y_top_left", "x_bottom_right", "y_bottom_right"}
-
 def create_xml(file_path, updated_details, XML_STRUCTURE=XML_STRUCTURE):
     XML_STRUCTURE['annotation']["folder"] = updated_details.get("folder", None)
-    XML_STRUCTURE['annotation']["filename"] = updated_details.get("filename", None)
+    XML_STRUCTURE['annotation']["filename"] = updated_details.get("filename")
     XML_STRUCTURE['annotation']["path"] = updated_details.get("path", None)
     XML_STRUCTURE['annotation']["source"]["database"] = updated_details.get("database", None)
     XML_STRUCTURE['annotation']["size"]["width"] = updated_details["width"]
     XML_STRUCTURE['annotation']["size"]["height"] = updated_details["height"]
-    XML_STRUCTURE['annotation']["size"]["depth"] = updated_details["depth"]
+    XML_STRUCTURE['annotation']["size"]["depth"] = updated_details["channels"]
     XML_STRUCTURE['annotation']["segmented"] = updated_details.get("segmented", None)
-    XML_STRUCTURE['annotation']["object"]["name"] = updated_details["label"]
+    XML_STRUCTURE['annotation']["object"]["name"] = updated_details["name"]
     XML_STRUCTURE['annotation']["object"]["pose"] = updated_details.get("pose", None)
     XML_STRUCTURE['annotation']["object"]["trucated"] = updated_details.get("truncated", None)
-    XML_STRUCTURE['annotation']["object"]["difficult"] = updated_details("difficult", None)
+    XML_STRUCTURE['annotation']["object"]["difficult"] = updated_details.get("difficult", None)
     XML_STRUCTURE['annotation']["object"]["bndbox"]["xmin"] = updated_details["x_top_left"]
     XML_STRUCTURE['annotation']["object"]["bndbox"]["xmax"] = updated_details["x_bottom_right"]
     XML_STRUCTURE['annotation']["object"]["bndbox"]["ymin"] = updated_details["y_top_left"]
@@ -79,10 +63,30 @@ def create_xml(file_path, updated_details, XML_STRUCTURE=XML_STRUCTURE):
         f.write(xmltodict.unparse(XML_STRUCTURE, pretty= True))
 
 
-if __name__ == "__main__":
-    xml_path = "../wildfire_data/pascal_format/train/ck0k9dg0vjxcg0848rmqzl38w_jpeg.rf.aa2243c64fd18ad4e8c179d09c12cbfc.xml"
-    txt_path = "../wildfire_data/yolo_darknet_format/train/ck0k9dg0vjxcg0848rmqzl38w_jpeg.rf.aa2243c64fd18ad4e8c179d09c12cbfc.txt"
-    # print(read_voc_xml(path))
-    # print(read_yolo(txt_path))
-    create_xml()
+def yolo_to_voc(txt_path, xml_folder, LABELS, img_folder = None):
+    meta_info = {}
+
+    if img_folder is None:
+        img_folder = os.path.dirname(txt_path)
+    basename = os.path.basename(txt_path)
+    file_no_ext = os.path.splitext(basename)[0]
     
+    meta_info['folder'] = xml_folder
+    meta_info['filename'] = file_no_ext+".xml"
+    meta_info['path'] = os.path.join(xml_folder, meta_info['filename'])
+    
+    img_info = read_img(None, file_no_ext, img_folder, ",jpg")
+    meta_info.extend(img_info)
+
+    bbox = read_yolo_txt(txt_path)
+    meta_info['name'] = get_label_name(LABELS, bbox['label'])
+
+    voc_bbox = anno_yolo_voc(bbox["x_center_norm"], bbox["y_center_norm"], bbox["width_norm"], bbox["height_norm"], meta_info["width"], meta_info["height"])
+    meta_info.update(voc_bbox)
+    try:
+        create_xml(meta_info['path'], meta_info)
+    except Exception as e:
+        print("Exception occured while writing XML file", e)
+        return "Conversion Failed"
+    else:
+        return f"{meta_info['path']} created!"
