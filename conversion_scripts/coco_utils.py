@@ -1,5 +1,6 @@
 import os
 
+
 def create_json_categories(LABELS):
     categories = []
     for idx, label in enumerate(LABELS):
@@ -9,6 +10,8 @@ def create_json_categories(LABELS):
             "supercategory": None
         })
     return categories
+
+
 def create_image_annotation(img_info):
     return {
         "file_name": os.path.basename(img_info["img_path"]),
@@ -17,8 +20,9 @@ def create_image_annotation(img_info):
         "id": img_info["id"],
     }
 
+
 def create_coco_bbox_annotation(id, image_info, bbox_info, is_crowd=None):
-    return{
+    return {
         "id": id,
         "image_id": image_info["id"],
         "category_id": bbox_info["category_id"],
@@ -26,6 +30,7 @@ def create_coco_bbox_annotation(id, image_info, bbox_info, is_crowd=None):
         "area": bbox_info["area"],
         "is_crowd": is_crowd
     }
+
 
 def get_coco_annotations(image_info_list):
     annotations = []

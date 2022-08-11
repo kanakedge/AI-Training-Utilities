@@ -1,7 +1,8 @@
 import xmltodict
 import os
+from queue import Queue
 
-XML_STRUCTURE = {'annotation':{
+XML_STRUCTURE = {'annotation': {
     "folder": None,
     "filename": None,
     "path": None,
@@ -23,72 +24,72 @@ XML_STRUCTURE = {'annotation':{
             "xmax": None,
             "ymin": None,
             "ymax": None
-        }   
+        }
     }
 }}
+
 
 def read_voc_xml(path):
     with open(path) as fd:
         doc = xmltodict.parse(fd.read())
-    parsed_ = {}
-    parsed_['filename'] = doc['annotation']['filename']
-    parsed_["path"] = doc['annotation']['path']
-    parsed_["img_width"] = doc['annotation']['size']['width']
-    parsed_["img_height"] = doc['annotation']['size']['height']
-    parsed_["img_depth"] = doc['annotation']['size']['depth']
-
-    parsed_["label"] = doc['annotation']['object']['name']
-    parsed_["x_top_left"], parsed_["x_bottom_right"], parsed_["y_top_left"], parsed_["y_bottom_right"] = doc['annotation']['object']['bndbox'].values()
+    parsed_ = {'filename': doc['annotation']['filename'], "path": doc['annotation']['path'],
+               "img_width": doc['annotation']['size']['width'], "img_height": doc['annotation']['size']['height'],
+               "img_depth": doc['annotation']['size']['depth'], "label": doc['annotation']['object']['name'],
+               "x_top_left": (doc['annotation']['object']['bndbox'].values())[0],
+               "x_bottom_right": (doc['annotation']['object']['bndbox'].values())[1],
+               "y_top_left": (doc['annotation']['object']['bndbox'].values())[2],
+               "y_bottom_right": (doc['annotation']['object']['bndbox'].values())[3]}
 
     return parsed_
 
-def create_xml(updated_details, output_folder= None, XML_STRUCTURE=XML_STRUCTURE):
-    filename = os.path.splitext(updated_details["filename"])[0]+".xml"
-    if output_folder is None:
-        output_folder = os.getcwd()
-    file_path = os.path.join(output_folder, filename)
-    XML_STRUCTURE['annotation']["folder"] = updated_details.get("folder", None)
-    XML_STRUCTURE['annotation']["filename"] = filename
-    XML_STRUCTURE['annotation']["path"] = updated_details.get("path", None)
-    XML_STRUCTURE['annotation']["source"]["database"] = updated_details.get("database", None)
-    XML_STRUCTURE['annotation']["size"]["width"] = updated_details["width"]
-    XML_STRUCTURE['annotation']["size"]["height"] = updated_details["height"]
-    XML_STRUCTURE['annotation']["size"]["depth"] = updated_details["channels"]
-    XML_STRUCTURE['annotation']["segmented"] = updated_details.get("segmented", None)
-    # XML_STRUCTURE['annotation']["object"]["name"] = updated_details["name"]
-    # XML_STRUCTURE['annotation']["object"]["pose"] = updated_details.get("pose", None)
-    # XML_STRUCTURE['annotation']["object"]["trucated"] = updated_details.get("truncated", None)
-    # XML_STRUCTURE['annotation']["object"]["difficult"] = updated_details.get("difficult", None)
-    object = []
-    for bbox in updated_details["bbox"]:
-        object.append({"name" : bbox["name"], "xmin": bbox["xmin"], "ymin": bbox["ymin"],
-         "xmax": bbox["xmax"], "ymax": bbox["ymax"], "pose": bbox.get("pose", None),
-         "truncated": bbox.get("truncated", None), "difficult": bbox.get("difficult", None)})
-    
-    XML_STRUCTURE['annotation']["object"] = object
-    with open(file_path, "w") as f:
-        f.write(xmltodict.unparse(XML_STRUCTURE, pretty= True))
+
+def create_xml(q:Queue, output_folder=None, XML_STRUCTURE=XML_STRUCTURE):
+    while not q.empty():
+        updated_details = q.get()
+        filename = os.path.splitext(updated_details["filename"])[0] + ".xml"
+        if output_folder is None:
+            output_folder = os.getcwd()
+        file_path = os.path.join(output_folder, filename)
+        XML_STRUCTURE['annotation']["folder"] = updated_details.get("folder", None)
+        XML_STRUCTURE['annotation']["filename"] = filename
+        XML_STRUCTURE['annotation']["path"] = updated_details.get("path", None)
+        XML_STRUCTURE['annotation']["source"]["database"] = updated_details.get("database", None)
+        XML_STRUCTURE['annotation']["size"]["width"] = updated_details["width"]
+        XML_STRUCTURE['annotation']["size"]["height"] = updated_details["height"]
+        XML_STRUCTURE['annotation']["size"]["depth"] = updated_details["channels"]
+        XML_STRUCTURE['annotation']["segmented"] = updated_details.get("segmented", None)
+
+        objects = []
+        for bbox in updated_details["bbox"]:
+            objects.append({"name": bbox["name"], "xmin": bbox["xmin"], "ymin": bbox["ymin"],
+                           "xmax": bbox["xmax"], "ymax": bbox["ymax"], "pose": bbox.get("pose", None),
+                           "truncated": bbox.get("truncated", None), "difficult": bbox.get("difficult", None)})
+
+        XML_STRUCTURE['annotation']["object"] = objects
+        with open(file_path, "w") as f:
+            f.write(xmltodict.unparse(XML_STRUCTURE, pretty=True))
 
 
-def yolo_to_voc(txt_path, xml_folder, LABELS, img_folder = None):
+def yolo_to_voc(txt_path, xml_folder, LABELS, img_folder=None):
     meta_info = {}
 
     if img_folder is None:
         img_folder = os.path.dirname(txt_path)
     basename = os.path.basename(txt_path)
     file_no_ext = os.path.splitext(basename)[0]
-    
+
     meta_info['folder'] = xml_folder
-    meta_info['filename'] = file_no_ext+".xml"
+    meta_info['filename'] = file_no_ext + ".xml"
     meta_info['path'] = os.path.join(xml_folder, meta_info['filename'])
-    
+
     img_info = read_img(None, file_no_ext, img_folder, ",jpg")
     meta_info.extend(img_info)
 
     bbox = read_yolo_txt(txt_path)
     meta_info['name'] = get_label_name(LABELS, bbox['label'])
 
-    voc_bbox = anno_yolo_voc(bbox["x_center_norm"], bbox["y_center_norm"], bbox["width_norm"], bbox["height_norm"], meta_info["width"], meta_info["height"])
+    voc_bbox = anno_yolo_voc(bbox["x_center_norm"], bbox["y_center_norm"], bbox["width_norm"], bbox["height_norm"],
+                             meta_info["width"], meta_info["height"])
     meta_info.update(voc_bbox)
     try:
         create_xml(meta_info['path'], meta_info)
@@ -100,5 +101,5 @@ def yolo_to_voc(txt_path, xml_folder, LABELS, img_folder = None):
 
 
 if __name__ == "__main__":
-    xml  = xmltodict.parse(xmltodict.unparse(XML_STRUCTURE, pretty=True))
+    xml = xmltodict.parse(xmltodict.unparse(XML_STRUCTURE, pretty=True))
     print(xml)

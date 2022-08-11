@@ -1,12 +1,14 @@
 import json
 import os
+import shutil
 from queue import Queue
 from threading import Thread
 
-from anno_conversion import anno_coco_voc
-from voc_utils import create_xml
+from conversion_scripts.anno_conversion import anno_coco_voc
+from conversion_scripts.voc_utils import create_xml
 
-def parse_coco(json_file, q:Queue):
+
+def parse_coco(json_file, q: Queue):
     """
     json_file : coco.json
     q: queue.Queue()
@@ -28,26 +30,24 @@ def parse_coco(json_file, q:Queue):
                 bbox_voc["name"] = label
                 converted_results.append(bbox_voc)
         details['filename'] = img_file
-        details['width'], details["height"], details["channels"] = width, height, 3 #channels
+        details['width'], details["height"], details["channels"] = width, height, 3  # channels
         details["bbox"] = converted_results
         q.put(details)
-    
-class Coco2Yolo:
-    """
-    Coco to Yolo Conversion Class
-    """
-    def __init__(self, coco_json):
-        with open(coco_json) as f:
-            data = json.load(f)
-        self.images = data['images']
-        self.annotations = data['annotations']
-        categories = data["categories"]
-        self.categories = {categories[idx]['id']: categories[idx] for idx in range(len(categories))}
-    
-if __name__ == "__main__":
-    JSON_FILE = "../../wildfire_data/coco_format/train/_annotations.coco.json"
+
+
+def coco2voc(json_file, output_folder):
+    if os.path.exists(output_folder):
+        shutil.rmtree(output_folder)
+    os.mkdir(output_folder)
     q = Queue()
-    num_threads = os.cpu_count()
-    parse_coco(JSON_FILE, q)
-    for _ in len()
-    create_xml(updated_details = q.get(), output_folder = "./xml_folder")
+    num_threads = os.cpu_count() - 2
+    parse_coco(json_file, q)
+
+    print("Num Threads: ", num_threads)
+    for _ in range(num_threads):
+        Thread(target=create_xml, args=(q, output_folder,)).start()
+
+
+if __name__ == "__main__":
+    COCO_JSON = "../_annotations.coco.json"
+    coco2voc(COCO_JSON, "../xml_files")

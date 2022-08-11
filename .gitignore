@@ -1,2 +1,5 @@
 testing_file.xml
 __pycache__
+**.json
+**.xml
+.idea/
