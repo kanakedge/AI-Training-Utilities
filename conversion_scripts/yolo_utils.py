@@ -1,10 +1,11 @@
-from conversion_scripts.utils import read_img
+from utils import read_img
 
 def read_yolo_labels(label_file):
     with open(label_file, "r") as f:
         data = f.read()
     data = data.split('\n')
     return data
+
 def read_yolo_txt(path):
     with open(path, "r") as file:
         data = file.read()

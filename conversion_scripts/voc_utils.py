@@ -1,4 +1,5 @@
 import xmltodict
+import os
 
 XML_STRUCTURE = {'annotation':{
     "folder": None,
@@ -22,7 +23,7 @@ XML_STRUCTURE = {'annotation':{
             "xmax": None,
             "ymin": None,
             "ymax": None
-        }
+        }   
     }
 }}
 
@@ -41,24 +42,30 @@ def read_voc_xml(path):
 
     return parsed_
 
-def create_xml(file_path, updated_details, XML_STRUCTURE=XML_STRUCTURE):
+def create_xml(updated_details, output_folder= None, XML_STRUCTURE=XML_STRUCTURE):
+    filename = os.path.splitext(updated_details["filename"])[0]+".xml"
+    if output_folder is None:
+        output_folder = os.getcwd()
+    file_path = os.path.join(output_folder, filename)
     XML_STRUCTURE['annotation']["folder"] = updated_details.get("folder", None)
-    XML_STRUCTURE['annotation']["filename"] = updated_details.get("filename")
+    XML_STRUCTURE['annotation']["filename"] = filename
     XML_STRUCTURE['annotation']["path"] = updated_details.get("path", None)
     XML_STRUCTURE['annotation']["source"]["database"] = updated_details.get("database", None)
     XML_STRUCTURE['annotation']["size"]["width"] = updated_details["width"]
     XML_STRUCTURE['annotation']["size"]["height"] = updated_details["height"]
     XML_STRUCTURE['annotation']["size"]["depth"] = updated_details["channels"]
     XML_STRUCTURE['annotation']["segmented"] = updated_details.get("segmented", None)
-    XML_STRUCTURE['annotation']["object"]["name"] = updated_details["name"]
-    XML_STRUCTURE['annotation']["object"]["pose"] = updated_details.get("pose", None)
-    XML_STRUCTURE['annotation']["object"]["trucated"] = updated_details.get("truncated", None)
-    XML_STRUCTURE['annotation']["object"]["difficult"] = updated_details.get("difficult", None)
-    XML_STRUCTURE['annotation']["object"]["bndbox"]["xmin"] = updated_details["x_top_left"]
-    XML_STRUCTURE['annotation']["object"]["bndbox"]["xmax"] = updated_details["x_bottom_right"]
-    XML_STRUCTURE['annotation']["object"]["bndbox"]["ymin"] = updated_details["y_top_left"]
-    XML_STRUCTURE['annotation']["object"]["bndbox"]["ymax"] = updated_details["y_bottom_right"]
+    # XML_STRUCTURE['annotation']["object"]["name"] = updated_details["name"]
+    # XML_STRUCTURE['annotation']["object"]["pose"] = updated_details.get("pose", None)
+    # XML_STRUCTURE['annotation']["object"]["trucated"] = updated_details.get("truncated", None)
+    # XML_STRUCTURE['annotation']["object"]["difficult"] = updated_details.get("difficult", None)
+    object = []
+    for bbox in updated_details["bbox"]:
+        object.append({"name" : bbox["name"], "xmin": bbox["xmin"], "ymin": bbox["ymin"],
+         "xmax": bbox["xmax"], "ymax": bbox["ymax"], "pose": bbox.get("pose", None),
+         "truncated": bbox.get("truncated", None), "difficult": bbox.get("difficult", None)})
     
+    XML_STRUCTURE['annotation']["object"] = object
     with open(file_path, "w") as f:
         f.write(xmltodict.unparse(XML_STRUCTURE, pretty= True))
 
@@ -90,3 +97,8 @@ def yolo_to_voc(txt_path, xml_folder, LABELS, img_folder = None):
         return "Conversion Failed"
     else:
         return f"{meta_info['path']} created!"
+
+
+if __name__ == "__main__":
+    xml  = xmltodict.parse(xmltodict.unparse(XML_STRUCTURE, pretty=True))
+    print(xml)

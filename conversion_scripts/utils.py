@@ -1,7 +1,7 @@
 import xmltodict
 import os
 import cv2
-from conversion_scripts.voc_utils import read_voc_xml
+from voc_utils import read_voc_xml
 # demo_xml = {"folder", "filename", "database", "path", "width", "height", "channels", "segmented", "label", "pose", "truncated", "difficult", "occluded", "x_top_left", "y_top_left", "x_bottom_right", "y_bottom_right"}
 # XML_STRUCTURE = {'annotation':{
 #     "folder": None,

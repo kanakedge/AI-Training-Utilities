@@ -9,23 +9,21 @@ def create_json_categories(LABELS):
             "supercategory": None
         })
     return categories
-def create_image_annotation(image_id, file_path, width, height):
-    
-    image_annotation = {
-        "file_name": os.path.basename(file_path),
-        "height": height,
-        "width": width,
-        "id": image_id,
+def create_image_annotation(img_info):
+    return {
+        "file_name": os.path.basename(img_info["img_path"]),
+        "height": img_info["height"],
+        "width": img_info["width"],
+        "id": img_info["id"],
     }
-    return image_annotation
 
-def create_coco_bbox_annotation(id, image_id, category_id, bbox, area, is_crowd):
+def create_coco_bbox_annotation(id, image_info, bbox_info, is_crowd=None):
     return{
         "id": id,
-        "image_id": image_id,
-        "category_id": category_id,
-        "bbox": bbox,
-        "area": area,
+        "image_id": image_info["id"],
+        "category_id": bbox_info["category_id"],
+        "bbox": list(bbox_info.values())[1:-1],
+        "area": bbox_info["area"],
         "is_crowd": is_crowd
     }
 
