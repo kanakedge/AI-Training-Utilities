@@ -1,5 +1,6 @@
 from conversion_scripts.coco_to_voc import coco2voc
 from conversion_scripts.yolo_to_voc import yolo2voc
+from conversion_scripts.yolo_to_coco import yolo2coco
 
 if __name__ == "__main__":
     # COCO to VOC Conversion
@@ -12,5 +13,9 @@ if __name__ == "__main__":
 
     in_dir = "/Users/kanakraj/workspace/edgeneural/wild_fire_dataset/yolo/train"
     label_file = "/Users/kanakraj/workspace/edgeneural/wild_fire_dataset/yolo/train/_darknet.labels"
-    out_dir = "./xml_files"
-    yolo2voc(in_dir, None, out_dir, label_file)
+    # out_dir = "./xml_files"
+    # yolo2voc(in_dir, None, label_file, out_dir)
+
+    yolo2coco(in_dir, in_dir, label_file, "annotations.json")
+
+
