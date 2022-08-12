@@ -1,6 +1,5 @@
 import os
 import cv2
-from conversion_scripts.voc_utils import read_voc_xml
 
 
 def get_label_name(labels, idx):

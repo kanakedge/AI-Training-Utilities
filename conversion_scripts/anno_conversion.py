@@ -31,9 +31,8 @@ def anno_yolo_voc(x_center_norm, y_center_norm, width_norm, height_norm, img_wid
     y_top_left, y_bottom_right = y_center - bbox_height / 2, y_center + bbox_height / 2
 
     return {
-        "x_top_left": x_top_left, "y_top_left": y_top_left,
-        "x_bottom_right": x_bottom_right, "y_bottom_right": y_bottom_right,
-        "img_width": img_width, "img_height": img_height
+        "xmin": x_top_left, "ymin": y_top_left,
+        "xmax": x_bottom_right, "ymax": y_bottom_right,
     }
 
 

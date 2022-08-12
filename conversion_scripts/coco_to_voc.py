@@ -3,9 +3,8 @@ import os
 import shutil
 from queue import Queue
 from threading import Thread
-
-from conversion_scripts.anno_conversion import anno_coco_voc
 from conversion_scripts.voc_utils import create_xml
+from conversion_scripts.anno_conversion import anno_coco_voc
 
 
 def parse_coco(json_file, q: Queue):
@@ -33,6 +32,7 @@ def parse_coco(json_file, q: Queue):
         details['width'], details["height"], details["channels"] = width, height, 3  # channels
         details["bbox"] = converted_results
         q.put(details)
+    q.put(None)
 
 
 def coco2voc(json_file, output_folder):
