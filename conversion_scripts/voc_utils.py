@@ -33,18 +33,18 @@ XML_STRUCTURE = {'annotation': {
 }}
 
 
-def read_voc_xml(path):
-    with open(path) as fd:
-        doc = xmltodict.parse(fd.read())
-    parsed_ = {'filename': doc['annotation']['filename'], "path": doc['annotation']['path'],
-               "img_width": doc['annotation']['size']['width'], "img_height": doc['annotation']['size']['height'],
-               "img_depth": doc['annotation']['size']['depth'], "label": doc['annotation']['object']['name'],
-               "x_top_left": (doc['annotation']['object']['bndbox'].values())[0],
-               "x_bottom_right": (doc['annotation']['object']['bndbox'].values())[1],
-               "y_top_left": (doc['annotation']['object']['bndbox'].values())[2],
-               "y_bottom_right": (doc['annotation']['object']['bndbox'].values())[3]}
+def read_voc_xml(paths, q):
+    for path in paths:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"{path} file not found!")
 
-    return parsed_
+        with open(path) as fd:
+            doc = xmltodict.parse(fd.read())
+        parsed_ = {'filename': doc['annotation']['filename'], "path": doc['annotation']['path'],
+                   "img_width": doc['annotation']['size']['width'], "img_height": doc['annotation']['size']['height'],
+                   "img_depth": doc['annotation']['size']['depth'], "bbox_objects": doc['annotation']['object']}
+
+        q.put(parsed_)
 
 
 def create_xml(q: Queue, output_folder=None, XML_STRUCTURE=XML_STRUCTURE):
