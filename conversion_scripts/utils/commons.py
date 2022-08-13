@@ -2,6 +2,13 @@ import os
 import cv2
 
 
+def read_label_file(label_file):
+    with open(label_file, "r") as f:
+        data = f.read()
+    data = data.split('\n')
+    return data
+
+
 def get_label_name(labels, idx):
     return labels[idx]
 
@@ -16,8 +23,8 @@ def read_img(img_path=None, file_no_ext=None, img_folder=None, img_ext=".jpg"):
     shape = img.shape
     return {
         "img_path": img_path,
-        "width": shape[0],
-        "height": shape[1],
+        "width": shape[1],
+        "height": shape[0],
         "channels": shape[2]
     }
 

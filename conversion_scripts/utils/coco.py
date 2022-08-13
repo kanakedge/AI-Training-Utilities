@@ -70,7 +70,6 @@ def write_coco(labels, json_file, q: Queue, num_threads):
             json_data['images'].append(
                 {"id": img_id, "license": None, "filename": os.path.basename(details['filename']),
                  "width": details["width"], "height": details["height"]})
-
             for bbox in details['bbox']:
                 coco_bbox = anno_voc_coco(bbox['xmin'], bbox['xmax'], bbox['ymin'], bbox['ymax'])
                 category_id = 0

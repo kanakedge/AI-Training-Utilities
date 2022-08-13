@@ -3,8 +3,8 @@ from threading import Thread
 import os
 
 from conversion_scripts.utils.yolo import read_yolo
-from conversion_scripts.utils.yolo import read_yolo_labels
 from conversion_scripts.utils.coco import write_coco
+from conversion_scripts.utils.commons import read_label_file
 
 
 def helper_readYolo(img_files, labels, in_dir, img_dir, q):
@@ -17,7 +17,7 @@ def yolo2coco(in_dir, img_dir, label_file, json_file=None):
     q = Queue()
     img_extensions = [".jpg", ".jpeg", ".png"]
     num_threads = os.cpu_count() - 1
-    labels = read_yolo_labels(label_file)
+    labels = read_label_file(label_file)
 
     if img_dir is None:
         img_dir = in_dir

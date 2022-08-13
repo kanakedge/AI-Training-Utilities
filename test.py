@@ -1,6 +1,10 @@
 from conversion_scripts.tools.yolo_to_voc import yolo2voc
 from conversion_scripts.tools.yolo_to_coco import yolo2coco
 from conversion_scripts.tools.coco_to_voc import coco2voc
+from conversion_scripts.tools.voc_to_coco import voc2coco
+from conversion_scripts.utils.voc import read_voc_xml
+
+import pprint
 
 if __name__ == "__main__":
     # COCO to VOC Conversion
@@ -21,5 +25,8 @@ if __name__ == "__main__":
 
 
     # path = "ck0kcoc8ik6ni0848clxs0vif_jpeg.rf.8b4629777ffe1d349cc970ee8af59eac.xml"
-    # print(read_voc_xml(path))
+    # pprint.pprint(read_voc_xml(path))
 
+    in_dir = "/Users/kanakraj/workspace/edgeneural/wild_fire_dataset/voc/train"
+    label_file = "/Users/kanakraj/workspace/edgeneural/wild_fire_dataset/voc/_darknet.labels"
+    voc2coco(in_dir, in_dir, label_file, "./xml_annotations.json")

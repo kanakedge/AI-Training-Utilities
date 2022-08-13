@@ -2,13 +2,6 @@ import os
 from conversion_scripts.utils.commons import read_img
 
 
-def read_yolo_labels(label_file):
-    with open(label_file, "r") as f:
-        data = f.read()
-    data = data.split('\n')
-    return data
-
-
 def read_yolo_txt(txt_path):
     if os.path.exists(txt_path):
         with open(txt_path, "r") as file:
@@ -38,8 +31,9 @@ def read_yolo(img_file, labels, in_dir, img_dir):
 
     bbox_voc = []
     for bbox in bbox_yolo:
-        box = anno_yolo_voc(bbox["x_center_norm"], bbox["y_center_norm"], bbox["width_norm"],
-                            bbox["height_norm"], img_info["width"], img_info["height"])
+        box = anno_yolo_voc(x_center_norm=bbox["x_center_norm"], y_center_norm=bbox["y_center_norm"],
+                            height_norm=bbox["height_norm"], width_norm=bbox["width_norm"],
+                            img_width=img_info["width"], img_height=img_info["height"])
         box["name"] = labels[bbox["label"]]
         bbox_voc.append(box)
 

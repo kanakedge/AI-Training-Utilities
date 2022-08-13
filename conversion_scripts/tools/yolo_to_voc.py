@@ -3,8 +3,9 @@ import shutil
 from tqdm import tqdm
 from threading import Thread
 
-from conversion_scripts.utils.yolo import read_yolo_labels, read_yolo
+from conversion_scripts.utils.yolo import read_yolo
 from conversion_scripts.utils.voc import create_xml
+from conversion_scripts.utils.commons import read_label_file
 
 
 def helper_yolo2voc(img_files, labels, in_dir, img_dir, out_dir):
@@ -20,7 +21,7 @@ def yolo2voc(in_dir, img_dir, label_file, out_dir):
         shutil.rmtree(out_dir)
     os.mkdir(out_dir)
 
-    labels = read_yolo_labels(label_file)
+    labels = read_label_file(label_file)
 
     if img_dir is None:
         img_dir = in_dir
