@@ -19,8 +19,7 @@ def read_yolo_txt(txt_path):
     raise FileNotFoundError(txt_path)  # todo return None and handle in calling function
 
 
-def read_yolo(img_file, labels, in_dir, img_dir):
-    details = {}
+def read_yolo(img_file, in_dir, img_dir):
     txt = os.path.splitext(img_file)[0] + ".txt"
 
     txt_file = os.path.join(in_dir, txt)
@@ -29,19 +28,8 @@ def read_yolo(img_file, labels, in_dir, img_dir):
     img_info = read_img(img_file)
     bbox_yolo = read_yolo_txt(txt_file)
 
-    bbox_voc = []
-    for bbox in bbox_yolo:
-        box = anno_yolo_voc(x_center_norm=bbox["x_center_norm"], y_center_norm=bbox["y_center_norm"],
-                            height_norm=bbox["height_norm"], width_norm=bbox["width_norm"],
-                            img_width=img_info["width"], img_height=img_info["height"])
-        box["name"] = labels[bbox["label"]]
-        bbox_voc.append(box)
-
-    details['filename'] = img_file
-    details['width'], details["height"], details["channels"] = \
-        img_info["width"], img_info["height"], img_info["channels"]
-    details["bbox"] = bbox_voc
-    return details
+    return {'filename': img_file, 'width': img_info["width"], "height": img_info["height"],
+            "channels": img_info["channels"], "bbox": bbox_yolo}
 
 
 def anno_yolo_coco(label, x_center_norm, y_center_norm, width_norm, height_norm, img_width, img_height):

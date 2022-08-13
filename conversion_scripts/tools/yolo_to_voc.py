@@ -3,14 +3,22 @@ import shutil
 from tqdm import tqdm
 from threading import Thread
 
-from conversion_scripts.utils.yolo import read_yolo
+from conversion_scripts.utils.yolo import read_yolo, anno_yolo_voc
 from conversion_scripts.utils.voc import create_xml
 from conversion_scripts.utils.commons import read_label_file
 
 
 def helper_yolo2voc(img_files, labels, in_dir, img_dir, out_dir):
     for img_file in tqdm(img_files):
-        details = read_yolo(img_file, labels, in_dir, img_dir)
+        details = read_yolo(img_file, in_dir, img_dir)
+        bbox_voc = []
+        for bbox in details["bbox"]:
+            box = anno_yolo_voc(x_center_norm=bbox["x_center_norm"], y_center_norm=bbox["y_center_norm"],
+                                height_norm=bbox["height_norm"], width_norm=bbox["width_norm"],
+                                img_width=details["width"], img_height=details["height"])
+            box["name"] = labels[bbox["label"]]
+            bbox_voc.append(box)
+        details["bbox"] = bbox_voc
         create_xml(details, output_folder=out_dir)
 
 

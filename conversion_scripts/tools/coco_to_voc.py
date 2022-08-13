@@ -18,7 +18,7 @@ def helper_createXML(q, output_dir):
 
 # def helper_parseCOCO(q, json_file):
 
-def parse_coco(json_file, q: Queue):
+def parse_coco(json_file, q: Queue, fn=None):
     """
     json_file : coco.json
     q: queue.Queue()
