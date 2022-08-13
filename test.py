@@ -20,8 +20,8 @@ if __name__ == "__main__":
     out_dir = "./xml_files"
     yolo2voc(in_dir, None, label_file, out_dir)
 
-    yolo2coco(in_dir, in_dir, label_file, "./yolo_annotations.json")
-
+    # yolo2coco(in_dir, in_dir, label_file, "./yolo_annotations.json")
+    #
 
 
     # path = "ck0kcoc8ik6ni0848clxs0vif_jpeg.rf.8b4629777ffe1d349cc970ee8af59eac.xml"

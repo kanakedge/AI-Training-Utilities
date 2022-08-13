@@ -85,3 +85,30 @@ def write_coco(labels, json_file, q: Queue, num_threads):
 
     with open(json_file, "w", encoding='utf-8') as f:
         json.dump(json_data, f, ensure_ascii=False, indent=4)
+
+
+def parse_coco(json_file):
+    """
+    json_file : coco.json
+    q: queue.Queue()
+    """
+    parsed_ = []
+    with open(json_file) as f:
+        data = json.load(f)
+    categories = data["categories"]
+    categories = {categories[idx]['id']: categories[idx] for idx in range(len(categories))}
+    for img in data['images']:
+        bbox_ = []
+        for anno in data['annotations']:
+            if anno['image_id'] == img["id"]:
+                var = {"category": {
+                    "id": anno['category_id'],
+                    "name": categories[anno['category_id']]["name"]},
+                    "bbox": anno["bbox"]
+                }
+                bbox_.append(var)
+
+        details = {'filename': img["file_name"], 'width': img["width"], "height": img["height"], "channels": 3,
+                   "bbox": bbox_}
+        parsed_.append(details)
+    return parsed_
