@@ -1,6 +1,7 @@
 import os
 import json
 from queue import Queue
+from conversion_scripts.utils.voc import anno_voc_coco
 
 
 def anno_coco_voc(x_top_left, y_top_left, bbox_width, bbox_height):
@@ -24,7 +25,7 @@ def create_json_categories(LABELS):
     return categories
 
 
-def create_image_annotation(img_info):
+def get_coco_image_annotation(img_info):
     return {
         "file_name": os.path.basename(img_info["img_path"]),
         "height": img_info["height"],
@@ -47,25 +48,28 @@ def create_coco_bbox_annotation(id, image_info, bbox_info, is_crowd=None):
 def get_coco_annotations(image_info_list):
     annotations = []
     for image in image_info_list:
-        annotations.append(create_image_annotation(img_info=image))
+        annotations.append(get_coco_image_annotation(img_info=image))
     return annotations
 
 
-def write_coco(labels, json_file, q: Queue):
-    categories = create_json_categories(labels)
-    json_data = {"categories": categories}
-    images = []
-    annotations = []
-    img_id = 0
-    bbox_id = 0
+def write_coco(labels, json_file, q: Queue, num_threads):
+    json_data = {"categories": create_json_categories(labels), "images": [], "annotations": []}
+
+    img_id, bbox_id = 0, 0
+    closed_threads = 0
+
     while True:
         if not q.empty():
             details = q.get()
-            # todo check all thread finished, slack
             if details is None:
-                break
-            images.append({"id": img_id, "license": None, "filename": os.path.basename(details['filename']),
-                           "width": details["width"], "height": details["height"]})
+                closed_threads += 1
+                if num_threads == closed_threads:
+                    break
+                continue
+
+            json_data['images'].append(
+                {"id": img_id, "license": None, "filename": os.path.basename(details['filename']),
+                 "width": details["width"], "height": details["height"]})
 
             for bbox in details['bbox']:
                 coco_bbox = anno_voc_coco(bbox['xmin'], bbox['xmax'], bbox['ymin'], bbox['ymax'])
@@ -74,13 +78,11 @@ def write_coco(labels, json_file, q: Queue):
                 bbox_ = [coco_bbox["x_top_left"], coco_bbox["y_top_left"],
                          coco_bbox["bbox_width"], coco_bbox["bbox_height"]]
                 is_crowd = None
-                annotations.append({"id": bbox_id, "image_id": img_id, "category_id": category_id,
-                                    "bbox": bbox_, "area": area, "segmentation": [], "iscrowd": is_crowd})
+                json_data["annotations"].append({"id": bbox_id, "image_id": img_id, "category_id": category_id,
+                                                 "bbox": bbox_, "area": area, "segmentation": [], "iscrowd": is_crowd})
                 bbox_id += 1
 
             img_id += 1
 
-    json_data["images"] = images
-    json_data["annotations"] = annotations
     with open(json_file, "w", encoding='utf-8') as f:
         json.dump(json_data, f, ensure_ascii=False, indent=4)

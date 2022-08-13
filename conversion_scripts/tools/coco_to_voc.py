@@ -45,13 +45,12 @@ def parse_coco(json_file, q: Queue):
 
 
 def coco2voc(json_file, output_folder):
-
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
     os.mkdir(output_folder)
 
     q = Queue()
-    num_threads = os.cpu_count() - 2
+    num_threads = os.cpu_count()
     Thread(target=parse_coco, args=(json_file, q,)).start()
 
     for _ in range(num_threads):

@@ -26,7 +26,6 @@ def read_yolo_txt(txt_path):
     raise FileNotFoundError(txt_path)  # todo return None and handle in calling function
 
 
-
 def read_yolo(img_file, labels, in_dir, img_dir):
     details = {}
     txt = os.path.splitext(img_file)[0] + ".txt"
