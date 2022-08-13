@@ -7,6 +7,15 @@ from conversion_scripts.utils.voc import create_xml
 from conversion_scripts.utils.coco import anno_coco_voc
 
 
+def helper_createXML(q, output_dir):
+    while True:
+        details = q.get()
+        if details is None:
+            q.put(None)
+            break
+        create_xml(details, output_dir)
+
+
 def parse_coco(json_file, q: Queue):
     """
     json_file : coco.json
@@ -36,16 +45,17 @@ def parse_coco(json_file, q: Queue):
 
 
 def coco2voc(json_file, output_folder):
+
     if os.path.exists(output_folder):
         shutil.rmtree(output_folder)
     os.mkdir(output_folder)
+
     q = Queue()
     num_threads = os.cpu_count() - 2
-    parse_coco(json_file, q)
+    Thread(target=parse_coco, args=(json_file, q,)).start()
 
-    print("Num Threads: ", num_threads)
     for _ in range(num_threads):
-        Thread(target=create_xml, args=(q, output_folder,)).start()
+        Thread(target=helper_createXML, args=(q, output_folder,)).start()
 
 
 if __name__ == "__main__":

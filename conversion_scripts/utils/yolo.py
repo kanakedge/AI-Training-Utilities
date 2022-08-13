@@ -1,5 +1,4 @@
 import os
-from queue import Queue
 from conversion_scripts.utils.commons import read_img
 
 
@@ -24,15 +23,8 @@ def read_yolo_txt(txt_path):
                  "height_norm": float(bbox[4])}
             )
         return bbox_
-    else:
-        raise FileNotFoundError(f"{txt_path} not found")  # todo continue, return None
+    raise FileNotFoundError(txt_path)  # todo return None and handle in calling function
 
-
-def yolo_2_imgs(img_path_list):
-    images = []
-    for idx, pth in enumerate(img_path_list):
-        images.append(read_img(idx, pth, None, None, None))
-    return images
 
 
 def read_yolo(img_file, labels, in_dir, img_dir):
