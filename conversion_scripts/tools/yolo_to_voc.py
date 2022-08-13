@@ -25,6 +25,9 @@ def helper_yolo2voc(img_files, labels, in_dir, img_dir, out_dir):
 def yolo2voc(in_dir, img_dir, label_file, out_dir):
     img_extensions = [".jpg", ".jpeg", ".png"]
     num_threads = os.cpu_count()
+    if img_dir == out_dir or in_dir == img_dir:
+        raise Exception(f"labels_dir or image_dir should not be same as output_dir")
+
     if os.path.exists(out_dir):
         shutil.rmtree(out_dir)
     os.mkdir(out_dir)

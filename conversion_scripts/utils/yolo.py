@@ -61,3 +61,8 @@ def anno_yolo_voc(x_center_norm, y_center_norm, width_norm, height_norm, img_wid
         "xmin": x_top_left, "ymin": y_top_left,
         "xmax": x_bottom_right, "ymax": y_bottom_right,
     }
+
+
+def write_yolo_txt(txt_file, annotations):
+    with open(txt_file, "w") as f:
+        f.writelines(' '.join(str(j) for j in i) + '\n' for i in annotations)
