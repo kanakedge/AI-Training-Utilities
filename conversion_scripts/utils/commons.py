@@ -6,7 +6,7 @@ def get_label_name(labels, idx):
     return labels[idx]
 
 
-def read_img(idx, img_path=None, file_no_ext=None, img_folder=None, img_ext=".jpg"):
+def read_img(img_path=None, file_no_ext=None, img_folder=None, img_ext=".jpg"):
     if img_path is None:
         img_path = os.path.join(img_folder, file_no_ext + img_ext)
     if not os.path.exists(img_path):
@@ -15,7 +15,6 @@ def read_img(idx, img_path=None, file_no_ext=None, img_folder=None, img_ext=".jp
     img = cv2.imread(img_path)
     shape = img.shape
     return {
-        "id": idx,
         "img_path": img_path,
         "width": shape[0],
         "height": shape[1],

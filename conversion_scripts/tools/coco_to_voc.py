@@ -3,8 +3,8 @@ import os
 import shutil
 from queue import Queue
 from threading import Thread
-from conversion_scripts.voc_utils import create_xml
-from conversion_scripts.anno_conversion import anno_coco_voc
+from conversion_scripts.utils.voc import create_xml
+from conversion_scripts.utils.coco import anno_coco_voc
 
 
 def parse_coco(json_file, q: Queue):

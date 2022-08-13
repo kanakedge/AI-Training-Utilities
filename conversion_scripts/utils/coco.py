@@ -2,7 +2,15 @@ import os
 import json
 from queue import Queue
 
-from conversion_scripts.anno_conversion import anno_voc_coco
+
+def anno_coco_voc(x_top_left, y_top_left, bbox_width, bbox_height):
+    x_bottom_right = x_top_left + bbox_width
+    y_bottom_right = y_top_left + bbox_height
+
+    return {
+        "xmin": x_top_left, "ymin": y_top_left,
+        "xmax": x_bottom_right, "ymax": y_bottom_right,
+    }
 
 
 def create_json_categories(LABELS):
@@ -53,6 +61,7 @@ def write_coco(labels, json_file, q: Queue):
     while True:
         if not q.empty():
             details = q.get()
+            # todo check all thread finished, slack
             if details is None:
                 break
             images.append({"id": img_id, "license": None, "filename": os.path.basename(details['filename']),

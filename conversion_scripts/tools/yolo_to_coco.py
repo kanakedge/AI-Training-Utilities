@@ -1,20 +1,16 @@
-import os
-import shutil
 from queue import Queue
 from threading import Thread
+import os
 
-from conversion_scripts.yolo_utils import read_yolo_labels, read_yolo
-from conversion_scripts.voc_utils import create_xml
+from conversion_scripts.utils.yolo import read_yolo
+from conversion_scripts.utils.yolo import read_yolo_labels
+from conversion_scripts.utils.coco import write_coco
 
 
-def yolo2voc(in_dir, img_dir, label_file, out_dir):
+def yolo2coco(in_dir, img_dir, label_file, json_file=None):
     q = Queue()
     img_extensions = [".jpg", ".jpeg", ".png"]
     num_threads = os.cpu_count()
-    if os.path.exists(out_dir):
-        shutil.rmtree(out_dir)
-    os.mkdir(out_dir)
-
     labels = read_yolo_labels(label_file)
 
     if img_dir is None:
@@ -23,9 +19,5 @@ def yolo2voc(in_dir, img_dir, label_file, out_dir):
                  if os.path.splitext(f)[-1] in img_extensions]
     for _ in range(num_threads):
         Thread(target=read_yolo, args=(img_files, labels, in_dir, img_dir, q,)).start()
-    for _ in range(num_threads):
-        Thread(target=create_xml, args=(q, out_dir,)).start()
+    Thread(target=write_coco, args = (labels, json_file, q,)).start()
 
-
-if __name__ == "__main__":
-    pass

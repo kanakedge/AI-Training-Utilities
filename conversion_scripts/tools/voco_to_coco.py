@@ -1,10 +1,8 @@
-import json
 from queue import Queue
 from threading import Thread
 import os
 
-from conversion_scripts.coco_utils import create_json_categories, write_coco
-from conversion_scripts.voc_utils import read_voc_xml
+from conversion_scripts.utils.voc import read_voc_xml
 
 
 def voc2coco(in_dir, img_dir, json_file):
