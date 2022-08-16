@@ -24,7 +24,7 @@ def helper_readYolo(img_files, labels, in_dir, img_dir, q):
     q.put(None)
 
 
-def yolo2coco(in_dir, img_dir, label_file, json_file=None):
+def yolo2coco(in_dir, img_dir, label_file, json_file):
     q = Queue()
     img_extensions = [".jpg", ".jpeg", ".png"]
     num_threads = os.cpu_count() - 1

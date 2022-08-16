@@ -1,13 +1,14 @@
 import os
 import shutil
 from threading import Thread
+from tqdm import tqdm
 from conversion_scripts.utils.commons import read_label_file
 from conversion_scripts.utils.voc import read_voc_xml, anno_voc_yolo
 from conversion_scripts.utils.yolo import write_yolo_txt
 
 
 def helper_voc2yolo(img_files, in_dir, labels_dict, out_dir, ):
-    for img_file in img_files:
+    for img_file in tqdm(img_files):
         xml_file = os.path.join(in_dir, os.path.splitext(img_file)[0] + ".xml")
         img_details = read_voc_xml(xml_file)
         converted_anno = []
