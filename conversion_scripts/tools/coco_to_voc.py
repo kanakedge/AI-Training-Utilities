@@ -1,13 +1,14 @@
 import os
 import shutil
-from queue import Queue
 from threading import Thread
 from conversion_scripts.utils.voc import create_xml
 from conversion_scripts.utils.coco import anno_coco_voc, parse_coco
+from conversion_scripts.utils.commons import write_label_file
 
 
-def helper_coco2voc(json_file, q):
-    parsed = parse_coco(json_file)
+def helper_coco2voc(json_file):
+    parsed, categories = parse_coco(json_file)
+    category_list = [category['name'] for category in categories]
     for info in parsed:
         converted_results = []
         for bbox in info['bbox']:
@@ -15,17 +16,12 @@ def helper_coco2voc(json_file, q):
             bbox_voc['name'] = bbox["category"]["name"]
             converted_results.append(bbox_voc)
         info['bbox'] = converted_results
-        q.put(info)
-    q.put(None)
+    return parsed, category_list
 
 
-def helper_createXML(q, output_dir):
-    while True:
-        details = q.get()
-        if details is None:
-            q.put(None)
-            break
-        create_xml(details, output_dir)
+def helper_createXML(parsed, output_dir):
+    for info in parsed:
+        create_xml(info, output_dir)
 
 
 def coco2voc(json_file, output_folder):
@@ -33,12 +29,20 @@ def coco2voc(json_file, output_folder):
         shutil.rmtree(output_folder)
     os.mkdir(output_folder)
 
-    q = Queue()
-    num_threads = os.cpu_count()
-    Thread(target=helper_coco2voc, args=(json_file, q,)).start()
+    parsed, category_list = helper_coco2voc(json_file)
 
-    for _ in range(num_threads):
-        Thread(target=helper_createXML, args=(q, output_folder,)).start()
+    label_file = os.path.join(output_folder, "category.labels")
+    write_label_file(label_file, category_list)
+
+    num_threads = os.cpu_count()
+    divisions = len(parsed) // num_threads
+    start, end = 0, 0
+
+    for idx in range(num_threads):
+        if start < len(parsed):
+            end = (start + divisions) if idx + 1 < num_threads else len(parsed)
+            Thread(target=helper_createXML, args=(parsed[start:end], output_folder,)).start()
+            start = start + divisions
 
 
 if __name__ == "__main__":

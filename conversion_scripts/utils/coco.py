@@ -4,6 +4,14 @@ from queue import Queue
 from conversion_scripts.utils.voc import anno_voc_coco
 
 
+def anno_coco_yolo(x_top_left, y_top_left, bbox_width, bbox_height, img_width, img_height):
+    x_mean_norm = (x_top_left + bbox_width / 2) / img_width
+    y_mean_norm = (y_top_left + bbox_height / 2) / img_height
+    width_norm = bbox_width / img_width
+    height_norm = bbox_height / img_height
+    return [x_mean_norm, y_mean_norm, width_norm, height_norm]
+
+
 def anno_coco_voc(x_top_left, y_top_left, bbox_width, bbox_height):
     x_bottom_right = x_top_left + bbox_width
     y_bottom_right = y_top_left + bbox_height
@@ -96,14 +104,14 @@ def parse_coco(json_file):
     with open(json_file) as f:
         data = json.load(f)
     categories = data["categories"]
-    categories = {categories[idx]['id']: categories[idx] for idx in range(len(categories))}
+    categories_dict = {categories[idx]['id']: categories[idx] for idx in range(len(categories))}
     for img in data['images']:
         bbox_ = []
         for anno in data['annotations']:
             if anno['image_id'] == img["id"]:
                 var = {"category": {
                     "id": anno['category_id'],
-                    "name": categories[anno['category_id']]["name"]},
+                    "name": categories_dict[anno['category_id']]["name"]},
                     "bbox": anno["bbox"]
                 }
                 bbox_.append(var)
@@ -111,4 +119,4 @@ def parse_coco(json_file):
         details = {'filename': img["file_name"], 'width': img["width"], "height": img["height"], "channels": 3,
                    "bbox": bbox_}
         parsed_.append(details)
-    return parsed_
+    return parsed_, categories

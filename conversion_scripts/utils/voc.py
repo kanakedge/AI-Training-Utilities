@@ -115,8 +115,8 @@ def anno_voc_coco(x_min, x_max, y_min, y_max):
 
 
 def anno_voc_yolo(xmin, xmax, ymin, ymax, img_width, img_height):
-    x_mean_norm = (xmax + xmin) / img_width
-    y_mean_norm = (ymin + ymax) / img_height
+    x_mean_norm = (xmax + xmin) / 2*img_width
+    y_mean_norm = (ymin + ymax) / 2*img_height
     width_norm, height_norm = (xmax - xmin) / img_width, (ymax - ymin) / img_height
     return [x_mean_norm, y_mean_norm, width_norm, height_norm]
 

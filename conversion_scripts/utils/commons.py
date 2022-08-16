@@ -29,6 +29,11 @@ def read_img(img_path=None, file_no_ext=None, img_folder=None, img_ext=".jpg"):
     }
 
 
+def write_label_file(label_file, labels):
+    with open(label_file, "w") as f:
+        f.writelines(f"{label}\n" for label in labels)
+
+
 if __name__ == "__main__":
     xml_path = "../wildfire_data/pascal_format/train/ck0k9dg0vjxcg0848rmqzl38w_jpeg.rf" \
                ".aa2243c64fd18ad4e8c179d09c12cbfc.xml "
